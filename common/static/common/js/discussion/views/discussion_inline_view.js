@@ -26,7 +26,7 @@
             var match;
 
             this.$el = options.el;
-            this.readOnly = options.readOnly;
+            this.readOnly = this.$el.data('read-only');
             this.showByDefault = options.showByDefault || false;
             this.toggleDiscussionBtn = this.$('.discussion-show');
             this.listenTo(this.model, 'change', this.render);
