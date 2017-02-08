@@ -81,7 +81,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
                 this.moveXBlockBreadcrumbView.remove();
             }
             BaseModal.prototype.hide.apply(this);
-            Feedback.prototype.outFocus.apply(this);
+            // Feedback.prototype.outFocus.apply(this);
         },
 
         focusModal: function() {
@@ -124,8 +124,10 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
         updateMoveState: function(isValidMove) {
             var $moveButton = this.$el.find('.action-move');
             if (isValidMove) {
+                $moveButton.removeAttr('disabled');
                 $moveButton.removeClass('is-disabled');
             } else {
+                $moveButton.attr('disabled', true);
                 $moveButton.addClass('is-disabled');
             }
             this.isValidMove = isValidMove || false;
@@ -160,25 +162,13 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
                                     displayName: self.sourceXBlockInfo.get('display_name')
                                 }
                             ),
-                            HtmlUtils.interpolateHtml(
-                                HtmlUtils.HTML('<a href="/container/{newLocator}">{linkText}</a>'),
-                                {
-                                    newLocator: response.parent_locator,
-                                    linkText: gettext('Take me to the new location')
-                                }
-                            ),
-                            HtmlUtils.interpolateHtml(
-                                HtmlUtils.HTML(
-                                    '<a class="action-undo-move" href="#" data-source-display-name="{displayName}" data-source-locator="{sourceLocator}" data-source-parent-locator="{sourceParentLocator}" data-target-index="{targetIndex}">{undoMove}</a>'   // eslint-disable-line max-len
-                                ),
-                                {
-                                    displayName: self.sourceXBlockInfo.get('display_name'),
-                                    sourceLocator: self.sourceXBlockInfo.id,
-                                    sourceParentLocator: self.sourceParentXBlockInfo.id,
-                                    targetIndex: response.source_index,
-                                    undoMove: gettext('Undo move')
-                                }
-                            )
+                            {
+                                sourceDisplayName: self.sourceXBlockInfo.get('display_name'),
+                                sourceLocator: self.sourceXBlockInfo.id,
+                                sourceParentLocator: self.sourceParentXBlockInfo.id,
+                                targetParentLocator: response.parent_locator,
+                                targetIndex: response.source_index
+                            }
                         );
                     }
                 });

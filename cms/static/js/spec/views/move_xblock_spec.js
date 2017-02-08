@@ -378,9 +378,10 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                 var courseOutline,
                     courseOutlineOptions,
                     verifyNotificationStatus,
-                    getConfirmationFeedbackTitle,
-                    getUndoConfirmationFeedbackTitle,
-                    getConfirmationFeedbackMessage,
+                    verifyConfirmationFeedbackTitle,
+                    verifyConfirmationFeedbackRedirectLink,
+                    verifyUndoConfirmationFeedbackTitle,
+                    verifyConfirmationFeedbackUndoMoveAction,
                     sendMoveXBlockRequest,
                     moveXBlockWithSuccess;
 
@@ -399,41 +400,59 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                     courseOutline = null;
                 });
 
-                getConfirmationFeedbackTitle = function(displayName, parentLocator) {
-                    return StringUtils.interpolate(
-                        'Success! "{displayName}" has been moved. {link_start}Take me to the new location{link_end}',
+                verifyConfirmationFeedbackTitle = function(displayName) {
+                    expect(modal.movedAlertView.$el.find('.title').html().trim())
+                    .toEqual(StringUtils.interpolate('Success! "{displayName}" has been moved.',
                         {
-                            displayName: displayName,
-                            link_start: HtmlUtils.HTML('<a href="/container/' + parentLocator + '">'),
-                            link_end: HtmlUtils.HTML('</a>')
-                        }
+                            displayName: displayName
+                        })
                     );
                 };
 
-                getUndoConfirmationFeedbackTitle = function(displayName) {
-                    return StringUtils.interpolate(
-                        'Move cancelled. "{sourceDisplayName}" has been moved back to its original location.',
-                        {
-                            sourceDisplayName: displayName
-                        }
+                verifyConfirmationFeedbackRedirectLink = function(parentLocator) {
+                    expect(modal.movedAlertView.$el.find('.copy').html().indexOf(
+                        HtmlUtils.interpolateHtml(
+                            HtmlUtils.HTML(
+                                '<button class="action-secondary action-cancel" data-secondary="{moveData}">' +
+                                'Take me to the new location</button>',
+                                {
+                                    moveData: {
+                                        targetParentLocator: parentLocator
+                                    }
+                                }
+                            )
+                        ) !== -1
+                    )).toBeTruthy();
+                };
+
+                verifyUndoConfirmationFeedbackTitle = function(displayName) {
+                    expect(modal.movedAlertView.$el.find('.title').html()).toEqual(
+                        StringUtils.interpolate(
+                            'Move cancelled. "{sourceDisplayName}" has been moved back to its original location.',
+                            {
+                                sourceDisplayName: displayName
+                            }
+                        )
                     );
                 };
 
-                getConfirmationFeedbackMessage = function(displayName, locator, parentLocator, sourceIndex) {
-                    return HtmlUtils.interpolateHtml(
-                        HtmlUtils.HTML(
-                            '<a class="action-undo-move" href="#" ' +
-                            'data-source-display-name="{displayName}" data-source-locator="{sourceLocator}" ' +
-                            'data-source-parent-locator="{parentSourceLocator}" data-target-index="{targetIndex}">' +
-                            '{undoMove}</a>'),
-                        {
-                            displayName: displayName,
-                            sourceLocator: locator,
-                            parentSourceLocator: parentLocator,
-                            targetIndex: sourceIndex,
-                            undoMove: gettext('Undo move')
-                        }
-                    );
+                verifyConfirmationFeedbackUndoMoveAction = function(displayName, locator, parentLocator, sourceIndex) {
+                    expect(modal.movedAlertView.$el.find('.copy').html().indexOf(
+                        HtmlUtils.interpolateHtml(
+                            HtmlUtils.HTML(
+                                '<button class="action-primary action-save" data-primary="{moveData}">' +
+                                'Undo Move</button>',
+                                {
+                                    moveData: {
+                                        sourceDisplayName: displayName,
+                                        sourceLocator: locator,
+                                        parentSourceLocator: parentLocator,
+                                        targetIndex: sourceIndex
+                                    }
+                                }
+                            )
+                        ) !== -1
+                    )).toBeTruthy();
                 };
 
                 verifyNotificationStatus = function(requests, notificationSpy, notificationText, sourceIndex) {
@@ -482,13 +501,10 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                     modal.$el.find('.modal-actions .action-move').click();
                     sendMoveXBlockRequest(requests, sourceLocator);
                     expect(modal.movedAlertView).toBeDefined();
-                    expect(modal.movedAlertView.$el.find('.title').html().trim())
-                        .toEqual(getConfirmationFeedbackTitle(sourceDisplayName, modal.targetParentXBlockInfo.id));
-                    expect(modal.movedAlertView.$el.find('.copy').html().indexOf(getConfirmationFeedbackMessage(
-                        sourceDisplayName,
-                        sourceLocator,
-                        sourceParentLocator,
-                        sourceIndex) !== -1)).toBeTruthy();
+                    verifyConfirmationFeedbackTitle(sourceDisplayName);
+                    verifyConfirmationFeedbackRedirectLink(sourceDisplayName);
+                    verifyConfirmationFeedbackUndoMoveAction(
+                        sourceDisplayName, sourceLocator, sourceParentLocator, sourceIndex);
                 };
 
                 it('move button is disabled by default', function() {
@@ -543,17 +559,13 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                     var sourceIndex = 0,
                         requests = AjaxHelpers.requests(this);
                     moveXBlockWithSuccess(requests);
-                    modal.movedAlertView.undoMoveXBlock({
-                        target: $(modal.movedAlertView.options.messageHtml.text)
-                    });
+                    modal.movedAlertView.$el.find('.action-save').click();
                     AjaxHelpers.respondWithJson(requests, {
                         move_source_locator: sourceLocator,
                         parent_locator: sourceParentLocator,
                         target_index: sourceIndex
                     });
-                    expect(modal.movedAlertView.undoMovedAlertView.$el.find('.title').html()).toEqual(
-                        getUndoConfirmationFeedbackTitle(sourceDisplayName)
-                    );
+                    verifyUndoConfirmationFeedbackTitle(sourceDisplayName);
                 });
 
                 it('shows a notification when moving', function() {
@@ -573,7 +585,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                         requests = AjaxHelpers.requests(this);
                     moveXBlockWithSuccess(requests);
                     notificationSpy = ViewHelpers.createNotificationSpy();
-                    modal.movedAlertView.$el.find('.action-undo-move').click();
+                    modal.movedAlertView.$el.find('.action-save').click();
                     verifyNotificationStatus(requests, notificationSpy, 'Undo moving');
                 });
             });
