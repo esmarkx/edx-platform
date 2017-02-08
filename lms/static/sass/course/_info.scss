@@ -60,88 +60,110 @@ div.info-wrapper {
       // This banner uses the Pattern Library's defined variables
       @include border-left(0px);
 
-      background: $homepage-background;
       border: 1px solid $uxpl-gray-background;
       width: 100%;
       display: table;
 
       .notification-color-border {
-        width: 10px; //Value defined by UX team
-        height: 100%;
+        width: 6px; //Value defined by UX team
+        min-height: 100%;
         margin: 0;
-        vertical-align: top;
-        background: $notification-highlight-border-color;
         display: table-cell;
+        background: $notification-highlight-border-color;
       }
 
-      .upgrade-icon {
-        vertical-align: top;
-        margin: $baseline;
-        display: inline-block;
-        img {
-          max-height: 50px; //Defined by UX Team, currently only used here
-        }
-      }
+      .notification-content {
+        display: inline-flex;
+        align-items: center;
+        align-content: flex-start;
+        flex-flow: row wrap;
+        background: $homepage-background;
+        width: 100%;
+        margin-bottom: 0;
+        justify-content: space-between;
 
-      .upgrade-msg {
-        vertical-align: top;
-        margin: $baseline 0;
-        display: inline-block;
+        .upgrade-icon {
+          margin: $baseline;
 
-        .msg-title {
-          font-weight: font-weight(semi-bold);
-          font-size: font-size(large);
-        }
-        .view-verified-info {
-          margin-top: $baseline / 4;
-          font-weight: font-weight(normal);
-          font-size: font-size(base);
+          img {
+            max-height: 50px; //Defined by UX Team, currently only used here
+          }
         }
 
-        a:link, a:hover, a:visited, a:active {
-          text-decoration: underline !important;
-        }
-      }
+        .upgrade-msg {
+          margin: $baseline 0;
+          flex: 2 0 50%; //TODO: Talk with Andy about percentage
+          flex-direction: column;
 
-      .upgrade-banner-button {
-        vertical-align: top;
-        display: inline-block;
-        margin: $baseline $baseline*2;
-      }
+          .msg-title {
+            font-weight: font-weight(semi-bold);
+            font-size: font-size(large);
+          }
+          .view-verified-info {
+            margin-top: $baseline / 4;
+            font-weight: font-weight(normal);
+            font-size: font-size(base);
+          }
 
-      .btn-upgrade {
-        @extend %btn-shims;
-
-        border-color: $uxpl-green-base;
-        background: $uxpl-green-base;
-        color: $btn-brand-color;
-
-        // STATE: hover and focus
-        &:hover,
-        &.is-hovered,
-        &:focus,
-        &.is-focused {
-          border-color: $btn-upgrade-focus-border-color;
-          background-color: $btn-upgrade-focus-background;
-          color: $btn-upgrade-focus-color;
+          a:link, a:hover, a:visited, a:active {
+            text-decoration: underline !important;
+          }
         }
 
-        // STATE: is pressed or active
-        &:active,
-        &:visited,
-        &.is-pressed,
-        &.is-active {
-          border-color: $btn-upgrade-active-border-color;
-          background: $btn-upgrade-active-background;
+        @include ltr {
+          .upgrade-banner-button {
+            margin: $baseline;
+            margin-left: auto;
+          }
+        }
+
+        @include rtl {
+          .upgrade-banner-button {
+            margin: $baseline;
+            margin-right: auto;
+          }
+        }
+
+        //[dir="ltr"] .upgrade-banner-button {
+        //  margin: $baseline;
+        //  margin-right: auto;
+        //  justify-content: flex-end;
+          //float: right;
+        //}
+
+        .btn-upgrade {
+          @extend %btn-shims;
+
+          border-color: $uxpl-green-base;
+          background: $uxpl-green-base;
           color: $btn-brand-color;
-        }
+          // STATE: hover and focus
+          &:hover,
+          &.is-hovered,
+          &:focus,
+          &.is-focused {
+            border-color: $btn-upgrade-focus-border-color;
+            background-color: $btn-upgrade-focus-background;
+            color: $btn-upgrade-focus-color;
+          }
 
-        // STATE: is disabled
-        &:disabled,
-        &.is-disabled {
-          border-color: $btn-disabled-border-color;
-          background: $btn-brand-disabled-background;
-          color: $btn-brand-color;
+          // STATE: is pressed or active
+          &:active,
+          &:visited,
+          &.is-pressed,
+          &.is-active {
+            border-color: $btn-upgrade-active-border-color;
+            background: $btn-upgrade-active-background;
+            color: $btn-brand-color;
+          }
+
+          // STATE: is disabled
+          &:disabled,
+          &.is-disabled {
+            border-color: $btn-disabled-border-color;
+            background: $btn-brand-disabled-background;
+            color: $btn-brand-color;
+          }
         }
       }
     }
