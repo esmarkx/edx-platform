@@ -1249,11 +1249,47 @@ class MoveComponentTest(ContainerBase):
             component_display_names_after_operation=['HTML 11', 'HTML 12']
         )
 
-    @attr('a11y')
+
+@attr(shard=1)
+@attr('a11y')
+class MoveModalA11YTest(ContainerBase):
+    """
+    Tests of moving an XBlock to another XBlock.
+    """
+    def populate_course_fixture(self, course_fixture):
+        """
+        Sets up a course structure.
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self.unit_page1 = XBlockFixtureDesc('vertical', 'Test Unit 1').add_children(
+            XBlockFixtureDesc('html', 'HTML 11'),
+            XBlockFixtureDesc('html', 'HTML 12')
+        )
+        self.unit_page2 = XBlockFixtureDesc('vertical', 'Test Unit 2').add_children(
+            XBlockFixtureDesc('html', 'HTML 21'),
+            XBlockFixtureDesc('html', 'HTML 22')
+        )
+        course_fixture.add_children(
+            XBlockFixtureDesc('chapter', 'Test Section').add_children(
+                XBlockFixtureDesc('sequential', 'Test Subsection').add_children(
+                    self.unit_page1,
+                    self.unit_page2
+                )
+            )
+        )
+
     def test_a11y(self):
         """
         Verify move modal a11y.
         """
+        move_modal_view = MoveModalView(self.browser)
+
+        navigation_options = {
+            'section': 0,
+            'subsection': 0,
+            'unit': 1,
+        }
+
         unit_page = self.go_to_unit_page(unit_name='Test Unit 1')
 
         unit_page.a11y_audit.config.set_scope(
@@ -1269,5 +1305,5 @@ class MoveComponentTest(ContainerBase):
         unit_page.displayed_children[0].open_move_modal()
 
         for category in ['section', 'subsection', 'component']:
-            self.move_modal_view.navigate_to_category(category, self.navigation_options)
+            move_modal_view.navigate_to_category(category, navigation_options)
             unit_page.a11y_audit.check_for_accessibility_errors()
